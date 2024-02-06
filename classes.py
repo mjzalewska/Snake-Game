@@ -2,30 +2,52 @@ import pygame
 from random import randint
 
 
+class IntroScreen:
+    pass
+
+
+class GameOverScreen:
+    pass
+
+
 class Snake(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        snake_head = pygame.image.load('assets/snake_head.png').convert_alpha()
-        snake_head_jaws = pygame.image.load('assets/snake_eat.png').convert_alpha()
+        snake_closed_jaws = pygame.image.load('assets/snake_head.png').convert_alpha()
+        snake_open_jaws = pygame.image.load('assets/snake_eat.png').convert_alpha()
         snake_tail = pygame.image.load('assets/snake_tail.png').convert_alpha()
         snake_belly = pygame.image.load('assets/snake_body.png').convert_alpha()
-        self.snake_eat = [snake_head, snake_head_jaws]
+        # snake image elements
+        self.head = [snake_closed_jaws, snake_open_jaws]
         self.snake_head_idx = 0
-        self.snake_full_body = [self.snake_eat[self.snake_head_idx], snake_belly, snake_tail]
+        self.snake_full_body = [self.head[self.snake_head_idx], snake_belly, snake_tail]
+        self.sn_part_x = 0
+        self.sn_part_y = 0
+        # snake sprite image and rect
         self.image = None
         self.rect = None
+        # draw snake at object creation
         self.draw_snake()
 
     def draw_snake(self):
-        total_height = max([item.get_height() for item in self.snake_full_body])
-        total_width = sum([item.get_width() for item in self.snake_full_body])
-        self.image = pygame.Surface((total_width, total_height))
+        image_height = max([item.get_height() for item in self.snake_full_body])
+        image_width = sum([item.get_width() for item in self.snake_full_body])
+        self.image = pygame.Surface((image_width, image_height))
         self.image.fill((169, 224, 0))
-        self.image.blit(self.snake_full_body[0], (0,0))
-        self.image.blit(self.snake_full_body[1], (self.snake_full_body[0].get_width()-10, 12))
-        self.image.blit(self.snake_full_body[2], (self.snake_full_body[0].get_width()+self.snake_full_body[1].get_width()-15, 12))
+        for index in range(len(self.snake_full_body)):
+            self.image.blit(self.snake_full_body[index], (0 + self.sn_part_x, 0 + self.sn_part_y))
+            if not index:
+                self.sn_part_x += self.snake_full_body[index].get_width() - 10
+            else:
+                self.sn_part_x += self.snake_full_body[index].get_width() - 5
+            self.sn_part_y = 12
         self.rect = self.image.get_rect(midbottom=(200, 200))
 
+    def eat(self):
+        pass
+
+    def grow(self):
+        pass
 
     def move(self):
         pass
@@ -37,15 +59,8 @@ class Feed(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
         self.rect = self.image.get_rect(midbottom=(randint(88, 759), randint(95, 619)))
 
+    # fix so that new feed doesn't collide with the frame
     # a method to keep adding new sprites at random locations within the frame and deleting when collision occurs
-
-
-class IntroScreen:
-    pass
-
-
-class GameOverScreen:
-    pass
 
 
 class PixelFrame:
