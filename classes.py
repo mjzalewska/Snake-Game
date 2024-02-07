@@ -16,11 +16,11 @@ class Snake(pygame.sprite.Sprite):
         snake_closed_jaws = pygame.image.load('assets/snake_head.png').convert_alpha()
         snake_open_jaws = pygame.image.load('assets/snake_eat.png').convert_alpha()
         snake_tail = pygame.image.load('assets/snake_tail.png').convert_alpha()
-        snake_belly = pygame.image.load('assets/snake_body.png').convert_alpha()
+        self.snake_belly = pygame.image.load('assets/snake_body.png').convert_alpha()
         # snake image elements
         self.head = [snake_closed_jaws, snake_open_jaws]
         self.snake_head_idx = 0
-        self.snake_full_body = [self.head[self.snake_head_idx], snake_belly, snake_tail]
+        self.snake_full_body = [self.head[self.snake_head_idx], self.snake_belly, snake_tail]
         self.sn_part_x = 0
         self.sn_part_y = 0
         # snake sprite image and rect
@@ -34,19 +34,23 @@ class Snake(pygame.sprite.Sprite):
         image_width = sum([item.get_width() for item in self.snake_full_body])
         self.image = pygame.Surface((image_width, image_height))
         self.image.fill((169, 224, 0))
-        for index in range(len(self.snake_full_body)):
-            self.image.blit(self.snake_full_body[index], (0 + self.sn_part_x, 0 + self.sn_part_y))
+        for index, body_part in enumerate(self.snake_full_body):
+            self.image.blit(body_part, (self.sn_part_x, self.sn_part_y))
             if not index:
-                self.sn_part_x += self.snake_full_body[index].get_width() - 10
+                self.sn_part_x += body_part.get_width() - 10
             else:
-                self.sn_part_x += self.snake_full_body[index].get_width() - 5
+                self.sn_part_x += body_part.get_width() - 5
             self.sn_part_y = 12
-        self.rect = self.image.get_rect(midbottom=(200, 200))
+        self.rect = self.image.get_rect(midbottom=(680, 400))
 
-    def eat(self):
+    def has_eaten(self):
         pass
 
-    def grow(self):
+    def grow(self, has_eaten: bool):
+        if has_eaten:
+            self.snake_full_body.insert(-1, self.snake_belly)
+
+    def get_player_input(self):
         pass
 
     def move(self):
@@ -133,6 +137,7 @@ while True:
         setup.screen.blit(setup.score_board, setup.score_rect)
         feed.draw(setup.screen)
         snake.draw(setup.screen)
+
 
     pygame.display.update()
     setup.clock.tick(60)
