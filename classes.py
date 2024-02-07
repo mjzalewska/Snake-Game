@@ -43,18 +43,38 @@ class Snake(pygame.sprite.Sprite):
             self.sn_part_y = 12
         self.rect = self.image.get_rect(midbottom=(680, 400))
 
-    def has_eaten(self):
-        pass
+    def has_collision(self, other_object):
+        if isinstance(other_object, PixelFrame):
+            if pygame.Rect.colliderect(self.rect, other_object.rect):
+                return True
+            return False
+        else:
+            if pygame.sprite.spritecollide(snake.sprite, other_object, True):
+                return True
+            return False
 
-    def grow(self, has_eaten: bool):
-        if has_eaten:
+    def grow(self, eat_feed: bool):
+        if eat_feed:
             self.snake_full_body.insert(-1, self.snake_belly)
 
     def get_player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.image = pygame.transform.rotate(self.image, 90)
+            self.rect = self.image.get_rect(center=self.rect.center)
+            self.rect.move_ip(0, -1)
+        elif keys[pygame.K_DOWN]:
+            pass
+        elif keys[pygame.K_LEFT]:
+            pass
+        elif keys[pygame.K_RIGHT]:
+            pass
+
+    def animate(self):
         pass
 
-    def move(self):
-        pass
+    def update(self):
+        self.get_player_input()
 
 
 class Feed(pygame.sprite.Sprite):
@@ -70,6 +90,7 @@ class Feed(pygame.sprite.Sprite):
 class PixelFrame:
     def __init__(self, surface):
         self.surface = surface
+        self.rect = self.surface.get_rect()
         self._draw_frame()
 
     def _draw_horizontal_dashed_line(self, start: int, end: int, distance_from_top: int):
@@ -137,7 +158,7 @@ while True:
         setup.screen.blit(setup.score_board, setup.score_rect)
         feed.draw(setup.screen)
         snake.draw(setup.screen)
-
+        snake.update()
 
     pygame.display.update()
     setup.clock.tick(60)
