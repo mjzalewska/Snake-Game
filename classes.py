@@ -11,65 +11,64 @@ class GameOverScreen:
 
 
 class Snake(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, group, position, length, parent=None):
         super().__init__()
-        self.element = pygame.image.load('assets/element.png').convert_alpha()
-        # snake image elements
-        self.body = [self.element, self.element]
-        self.element_x = 0
-        self.element_y = 0
-        # snake sprite image and rect
-        self.image = None
-        self.rect = None
-        # draw snake at object creation
-        self.draw_snake()
-
-    def draw_snake(self):
-        image_height = max([item.get_height() for item in self.body])
-        image_width = sum([item.get_width() for item in self.body])
-        self.image = pygame.Surface((image_width, image_height))
-        self.image.fill((169, 224, 0))
-        for body_element in self.body:
-            self.image.blit(body_element, (self.element_x, self.element_y))
-        self.element_x += image_width
-        self.element_y += image_height
-        self.rect = self.image.get_rect(midbottom=(680, 400))
-
-    def has_collision(self, other_object):
-        if isinstance(other_object, PixelFrame):
-            if pygame.Rect.colliderect(self.rect, other_object.rect):
-                return True
-            return False
+        self.length = length
+        self.parent = parent
+        self.child = None
+        if not self.parent:
+            self.image = pygame.image.load('assets/element.png').convert_alpha()
         else:
-            if pygame.sprite.spritecollide(snake.sprite, other_object, True):
-                return True
-            return False
+            self.child = Snake(group, (position[0], position[1] + 1), self.length - 1, self)
+        self.position = position
+        self.direction = (0, 0)
+        self.rect = self.image.get_rect(x=position[0], y=position[1])
 
     def grow(self, eat_feed: bool):
         if eat_feed:
-            self.body.append(self.element)
+            self.length += 1
 
-    # make the snake "break" on turn
-    # when snake in horizontal position - should turn around
-    # work on the collision with frame
     def get_player_input(self):
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_UP]:
-            if self.rect.top > 87:
-                self.rect.move_ip(0, -1)
-        elif keys[pygame.K_DOWN]:
-            if self.rect.bottom < 620:
-                self.rect.move_ip(0, 1)
-        elif keys[pygame.K_LEFT] and self.rect.left > 44:
-            self.rect.move_ip(-1, 0)
-        elif keys[pygame.K_RIGHT] and self.rect.right < 758:
-            self.rect.move_ip(1, 0)
+        if not self.parent:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]:
+                self.direction = (0, -1)
+            elif keys[pygame.K_DOWN]:
+                self.direction = (0, 1)
+            elif keys[pygame.K_LEFT]:
+                self.direction = (-1, 0)
+            elif keys[pygame.K_RIGHT]:
+                self.direction = (1, 0)
 
-    def animate(self):
+    def move(self):
+        parent_direction = self.parent.direction if self.parent else None
+        if self.direction == (0, -1):
+            self.position = self.position[0], self.position[1] - 1
+        elif self.direction == (0, 1):
+            self.position = self.position[0], self.position[1] + 1
+        elif self.direction == (-1, 0):
+            self.position = self.position[0] - 1, self.position[1]
+        elif self.direction == (1, 0):
+            self.position = self.position[0] + 1, self.position[1]
+
+        self.rect = self.image.get_rect(x=self.position[0], y=self.position[1])
+
+        if self.child:
+            self.child.move()
+
+        if parent_direction:
+            self.direction = parent_direction
+
+    def has_collision(self, other_object):
         pass
+        # self.rect.top > 87
+        # self.rect.bottom < 620
+        # self.rect.left > 44
+        # self.rect.right < 758
 
     def update(self):
         self.get_player_input()
+        self.move()
 
 
 class Feed(pygame.sprite.Sprite):
@@ -77,12 +76,11 @@ class Feed(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
         self.rect = self.image.get_rect(midbottom=(randint(88, 759), randint(95, 619)))
-
     # fix so that new feed doesn't collide with the frame
     # a method to keep adding new sprites at random locations within the frame and deleting when collision occurs
 
 
-class PixelFrame:
+class Frame:
     def __init__(self, surface):
         self.surface = surface
         self.rect = self.surface.get_rect()
@@ -118,7 +116,7 @@ class GameConfig:
         pygame.init()
         self.screen = pygame.display.set_mode((800, 672))
         self.background_surf = pygame.image.load('assets/background.png').convert()
-        self.game_frame = PixelFrame(self.background_surf)
+        self.game_frame = Frame(self.background_surf)
         self.game_font = pygame.font.Font('fonts/01Digit.ttf', 50)
         self.score_board = None
         self.score_rect = None
@@ -137,27 +135,30 @@ class GameConfig:
 
 
 setup = GameConfig()
-feed = pygame.sprite.GroupSingle()
-feed.add(Feed())
 
-snake = pygame.sprite.GroupSingle()
-snake.add(Snake())
+snake_sprites = pygame.sprite.Group()
+snake = Snake(snake_sprites, (400, 400), 6)
+snake_sprites.add(snake)
 
-key_press = 0
+feed_sprite = pygame.sprite.GroupSingle()
+feed = Feed()
+feed_sprite.add(feed)
+
+# key_press = 0
 
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if event.type == pygame.KEYDOWN and event.key in (pygame.K_UP, pygame.K_DOWN):
-            key_press += 1
+        # if event.type == pygame.KEYDOWN and event.key in (pygame.K_UP, pygame.K_DOWN):
+        #     key_press += 1
     if setup.game_active:
         setup.screen.blit(setup.background_surf, (0, 0))
         setup.screen.blit(setup.score_board, setup.score_rect)
-        feed.draw(setup.screen)
-        snake.draw(setup.screen)
-        snake.update()
+        feed_sprite.draw(setup.screen)
+        snake_sprites.update()
+        snake_sprites.draw(setup.screen)
 
     pygame.display.update()
     setup.clock.tick(60)
