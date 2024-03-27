@@ -16,13 +16,13 @@ class Snake(pygame.sprite.Sprite):
         self.length = length
         self.parent = parent
         self.child = None
-        if not self.parent:
-            self.image = pygame.image.load('assets/element.png').convert_alpha()
-        else:
-            self.child = Snake(group, (position[0], position[1] + 1), self.length - 1, self)
+        self.image = pygame.image.load('assets/element.png').convert_alpha()
         self.position = position
         self.direction = (0, 0)
         self.rect = self.image.get_rect(x=position[0], y=position[1])
+        if length > 1:
+            self.child = Snake(group, (position[0]+21, position[1]), self.length - 1, self)
+            group.add(self.child)
 
     def grow(self, eat_feed: bool):
         if eat_feed:
@@ -42,15 +42,8 @@ class Snake(pygame.sprite.Sprite):
 
     def move(self):
         parent_direction = self.parent.direction if self.parent else None
-        if self.direction == (0, -1):
-            self.position = self.position[0], self.position[1] - 1
-        elif self.direction == (0, 1):
-            self.position = self.position[0], self.position[1] + 1
-        elif self.direction == (-1, 0):
-            self.position = self.position[0] - 1, self.position[1]
-        elif self.direction == (1, 0):
-            self.position = self.position[0] + 1, self.position[1]
-
+        new_position = self.position[0] + self.direction[0], self.position[1] + self.direction[1]
+        self.position = new_position
         self.rect = self.image.get_rect(x=self.position[0], y=self.position[1])
 
         if self.child:
@@ -137,7 +130,7 @@ class GameConfig:
 setup = GameConfig()
 
 snake_sprites = pygame.sprite.Group()
-snake = Snake(snake_sprites, (400, 400), 6)
+snake = Snake(snake_sprites, (100, 400), 5)
 snake_sprites.add(snake)
 
 feed_sprite = pygame.sprite.GroupSingle()
@@ -151,8 +144,7 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        # if event.type == pygame.KEYDOWN and event.key in (pygame.K_UP, pygame.K_DOWN):
-        #     key_press += 1
+
     if setup.game_active:
         setup.screen.blit(setup.background_surf, (0, 0))
         setup.screen.blit(setup.score_board, setup.score_rect)
