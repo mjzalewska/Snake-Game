@@ -61,16 +61,10 @@ class Snake(pygame.sprite.Sprite):
             elif keys[pygame.K_RIGHT]:
                 self.direction = 'RIGHT'
 
-    def is_collision(self, other_object):
-        pass
-        # self.rect.top > 87
+        # self.rect.top > 80
         # self.rect.bottom < 620
         # self.rect.left > 44
         # self.rect.right < 758
-
-    # def update(self): # sprawdzić też to
-    #     self.get_direction()
-    # self.move()
 
 
 class Feed(pygame.sprite.Sprite):
@@ -85,24 +79,35 @@ class Feed(pygame.sprite.Sprite):
 class Frame:
     def __init__(self, surface):
         self.surface = surface
-        self.rect = self.surface.get_rect()
+        # self.rect = self.surface.get_rect()
+        self.dash_len = 4
+        self.frame_thickness = 6
+        self.top_frame_start = (40, 75)
+        self.bottom_frame_start = (40, 620)
+        self.left_frame_start = (40, 75)
+        self.right_frame_start = (754, 75)
+        self.frame_width = 720
+        self.frame_height = 580  # 545 #Rect((left, top), (width, height)) -> Rect
+        # drawing custom Rects
+        self.top_frame_rect = pygame.Rect(self.top_frame_start, (self.frame_width, self.frame_thickness))
+        self.bottom_frame_rect = pygame.Rect(self.bottom_frame_start, (self.frame_width, self.frame_thickness))
+        self.left_frame_rect = pygame.Rect(self.left_frame_start, (self.frame_thickness, self.frame_height))
+        self.right_frame_rect = pygame.Rect(self.right_frame_start, (self.frame_thickness, self.frame_height))
         self._draw_frame()
 
     def _draw_horizontal_dashed_line(self, start: int, end: int, distance_from_top: int):
-        gap = 0
-        dash_len = 4
-        while start + gap < end:
-            pygame.draw.line(self.surface, 'black', (start + gap, distance_from_top),
-                             (start + gap + dash_len, distance_from_top), 6)
-            gap += 6
+        dash_gap = 0
+        while start + dash_gap < end:
+            pygame.draw.line(self.surface, 'black', (start + dash_gap, distance_from_top),
+                             (start + dash_gap + self.dash_len, distance_from_top), self.frame_thickness)
+            dash_gap += 6
 
     def _draw_vertical_dashed_line(self, start: int, end: int, distance_from_left: int):
-        gap = 0
-        dash_len = 4
-        while distance_from_left + gap < end:
-            pygame.draw.line(self.surface, 'black', (start, distance_from_left + gap),
-                             (start + dash_len, distance_from_left + gap), 6)
-            gap += 7
+        dash_gap = 0
+        while distance_from_left + dash_gap < end:
+            pygame.draw.line(self.surface, 'black', (start, distance_from_left + dash_gap),
+                             (start + self.dash_len, distance_from_left + dash_gap), self.frame_thickness)
+            dash_gap += 7
 
     def _draw_frame(self):
         self._draw_horizontal_dashed_line(40, 760, 75)
@@ -111,6 +116,7 @@ class Frame:
         self._draw_vertical_dashed_line(754, 620, 75)
 
 
+score = 0
 class GameConfig:
 
     def __init__(self):
@@ -118,11 +124,11 @@ class GameConfig:
         self.screen = pygame.display.set_mode((800, 672))
         self.background_surf = pygame.image.load('assets/background.png').convert()
         self.game_frame = Frame(self.background_surf)
-        self.game_font = pygame.font.Font('fonts/01Digit.ttf', 50)
+        self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
         self.score_board = None
         self.score_rect = None
         self._set_window_caption()
-        self.render_score_board('36')  ## to be refactored
+        self.render_score_board(f'{score}')  ## to be refactored
         self.clock = pygame.time.Clock()
         self.game_active = True
 
@@ -133,6 +139,29 @@ class GameConfig:
     def render_score_board(self, score):
         self.score_board = self.game_font.render(score, False, 'black')
         self.score_rect = self.score_board.get_rect(center=(70, 50))
+
+
+def is_collision_w_feed():
+    if pygame.sprite.spritecollide(feed, snake_sprites, False):
+        print("Feed Collision")
+        return True
+    else:
+        return False
+
+
+def is_collision_w_frame():
+    if (snake.rect.colliderect(setup.game_frame.top_frame_rect) or
+            snake.rect.colliderect(setup.game_frame.bottom_frame_rect) or
+            snake.rect.colliderect(setup.game_frame.left_frame_rect) or
+            snake.rect.colliderect(setup.game_frame.right_frame_rect)):
+        print("Frame collision")
+        return True
+    else:
+        return False
+
+
+def is_collision_w_self():
+    pass
 
 
 setup = GameConfig()
@@ -148,6 +177,7 @@ feed_sprite.add(feed)
 MOVE = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVE, 300)
 
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -162,6 +192,8 @@ while True:
         feed_sprite.draw(setup.screen)
         snake_sprites.update()
         snake_sprites.draw(setup.screen)
+        # print(is_collision_w_frame())
+        # print(is_collision_w_feed())
 
     setup.clock.tick(60)
     pygame.display.update()
