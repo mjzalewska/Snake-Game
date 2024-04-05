@@ -5,11 +5,23 @@ GRIDSIZE = 21
 
 
 class IntroScreen:
-    pass
+    def __init__(self):
+        self.background = setup.background_surf
+        self.game_title = setup.game_font.render('RETRO SNAKE', False, (55, 125, 34))
+        self.game_title_rect = self.game_title.get_rect(center=(400, 336))
+        self.message = setup.game_font.render('Press space to start', False, (55, 125, 34))
+        self.message_rect = self.message.get_rect(center=(400, 400))
 
 
 class GameOverScreen:
-    pass
+    def __init__(self):
+        self.background = setup.background_surf
+        self.message = setup.game_font.render('GAME OVER', False, (55, 125, 34))
+        self.message_rect = self.message.get_rect(center=(400, 336))
+        self.score_summary = setup.game_font.render(f'Your score:{score}', False, (55, 125, 34))
+        self.score_summary_rect = self.score_summary.get_rect(center=(400, 400))
+        self.continue_msg = setup.game_font.render('Press space to start', False, (55, 125,34))
+        self.continue_msg_rect = self.continue_msg.get_rect(center=(400, 470))
 
 
 class Snake(pygame.sprite.Sprite):
@@ -95,8 +107,9 @@ class Feed(pygame.sprite.Sprite):  # 28x24
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
-        self.rect = self.image.get_rect(center=(randint(40+self.image.get_width()//2, 760-self.image.get_width()//2),
-                                                randint(75+self.image.get_height()//2, 620-self.image.get_height()//2)))
+        self.rect = self.image.get_rect(
+            center=(randint(40 + self.image.get_width() // 2, 760 - self.image.get_width() // 2),
+                    randint(75 + self.image.get_height() // 2, 620 - self.image.get_height() // 2)))
 
 
 class Frame:
@@ -179,6 +192,7 @@ feed_sprite.add(feed)
 MOVE = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVE, 300)
 
+
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -195,6 +209,7 @@ while True:
         snake_sprites.draw(setup.screen)
         # print(is_collision_w_frame())
         # print(is_collision_w_feed())
+
 
     setup.clock.tick(60)
     pygame.display.update()
