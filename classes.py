@@ -45,9 +45,38 @@ class Snake(pygame.sprite.Sprite):
         if parent_direction:
             self.direction = parent_direction
 
-    def grow(self, eat_feed: bool):
-        if eat_feed:
+    def grow(self):
+        if self.is_collision_w_self():
             self.length += 1
+
+    def is_collision_w_self(self):
+        head = self
+        current_segment = self.child
+
+        while current_segment is not None:
+            if head.rect.colliderect(current_segment.rect):
+                return True
+            current_segment = current_segment.child
+        else:
+            return False
+
+    @staticmethod
+    def is_collision_w_feed():
+        if pygame.sprite.spritecollide(feed, snake_sprites, False):
+            print("Feed Collision")
+            return True
+        else:
+            return False
+
+    def is_collision_w_frame(self):
+        if (self.rect.colliderect(setup.game_frame.top_frame_rect) or
+                self.rect.colliderect(setup.game_frame.bottom_frame_rect) or
+                self.rect.colliderect(setup.game_frame.left_frame_rect) or
+                self.rect.colliderect(setup.game_frame.right_frame_rect)):
+            print("Frame collision")
+            return True
+        else:
+            return False
 
     def update(self):
         if not self.parent:
@@ -61,19 +90,13 @@ class Snake(pygame.sprite.Sprite):
             elif keys[pygame.K_RIGHT]:
                 self.direction = 'RIGHT'
 
-        # self.rect.top > 80
-        # self.rect.bottom < 620
-        # self.rect.left > 44
-        # self.rect.right < 758
 
-
-class Feed(pygame.sprite.Sprite):
+class Feed(pygame.sprite.Sprite):  # 28x24
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
-        self.rect = self.image.get_rect(midbottom=(randint(88, 759), randint(95, 619)))
-    # fix so that new feed doesn't collide with the frame
-    # a method to keep adding new sprites at random locations within the frame and deleting when collision occurs
+        self.rect = self.image.get_rect(center=(randint(40+self.image.get_width()//2, 760-self.image.get_width()//2),
+                                                randint(75+self.image.get_height()//2, 620-self.image.get_height()//2)))
 
 
 class Frame:
@@ -87,8 +110,8 @@ class Frame:
         self.left_frame_start = (40, 75)
         self.right_frame_start = (754, 75)
         self.frame_width = 720
-        self.frame_height = 580  # 545 #Rect((left, top), (width, height)) -> Rect
-        # drawing custom Rects
+        self.frame_height = 580
+        # drawing custom Rects for the frame segments
         self.top_frame_rect = pygame.Rect(self.top_frame_start, (self.frame_width, self.frame_thickness))
         self.bottom_frame_rect = pygame.Rect(self.bottom_frame_start, (self.frame_width, self.frame_thickness))
         self.left_frame_rect = pygame.Rect(self.left_frame_start, (self.frame_thickness, self.frame_height))
@@ -117,6 +140,8 @@ class Frame:
 
 
 score = 0
+
+
 class GameConfig:
 
     def __init__(self):
@@ -128,7 +153,7 @@ class GameConfig:
         self.score_board = None
         self.score_rect = None
         self._set_window_caption()
-        self.render_score_board(f'{score}')  ## to be refactored
+        self.render_score_board(f'0{score}' if score < 10 else f'{score}')  ## to be refactored
         self.clock = pygame.time.Clock()
         self.game_active = True
 
@@ -139,29 +164,6 @@ class GameConfig:
     def render_score_board(self, score):
         self.score_board = self.game_font.render(score, False, 'black')
         self.score_rect = self.score_board.get_rect(center=(70, 50))
-
-
-def is_collision_w_feed():
-    if pygame.sprite.spritecollide(feed, snake_sprites, False):
-        print("Feed Collision")
-        return True
-    else:
-        return False
-
-
-def is_collision_w_frame():
-    if (snake.rect.colliderect(setup.game_frame.top_frame_rect) or
-            snake.rect.colliderect(setup.game_frame.bottom_frame_rect) or
-            snake.rect.colliderect(setup.game_frame.left_frame_rect) or
-            snake.rect.colliderect(setup.game_frame.right_frame_rect)):
-        print("Frame collision")
-        return True
-    else:
-        return False
-
-
-def is_collision_w_self():
-    pass
 
 
 setup = GameConfig()
@@ -176,7 +178,6 @@ feed_sprite.add(feed)
 
 MOVE = pygame.USEREVENT + 1
 pygame.time.set_timer(MOVE, 300)
-
 
 while True:
     for event in pygame.event.get():
