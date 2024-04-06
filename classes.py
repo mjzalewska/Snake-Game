@@ -6,23 +6,25 @@ GRIDSIZE = 21
 
 class IntroScreen:
     def __init__(self):
-        self.background = setup.background_surf
-        self.game_title = setup.game_font.render('RETRO SNAKE', False, (55, 125, 34))
+        self.background = game.background_surf
+        self.game_title = game.game_font.render('RETRO SNAKE', False, (55, 125, 34))
         self.game_title_rect = self.game_title.get_rect(center=(400, 336))
-        self.message = setup.game_font.render('Press space to start', False, (55, 125, 34))
+        self.message = game.game_font.render('Press space to start', False, (55, 125, 34))
         self.message_rect = self.message.get_rect(center=(400, 400))
 
 
 class GameOverScreen:
     def __init__(self):
-        self.background = setup.background_surf
-        self.message = setup.game_font.render('GAME OVER', False, (55, 125, 34))
-        self.message_rect = self.message.get_rect(center=(400, 336))
-        self.score_summary = setup.game_font.render(f'Your score:{score}', False, (55, 125, 34))
-        self.score_summary_rect = self.score_summary.get_rect(center=(400, 400))
-        self.continue_msg = setup.game_font.render('Press space to start', False, (55, 125,34))
-        self.continue_msg_rect = self.continue_msg.get_rect(center=(400, 470))
+        self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
+        self.message = self.game_font.render('Game over', False, (55, 125, 34))
+        self.message_rect = self.message.get_rect(center=(400, 236))
+        self.continue_msg = self.game_font.render('Press space to start', False, (55, 125, 34))
+        self.continue_msg_rect = self.continue_msg.get_rect(center=(400, 320))
 
+    def show(self):
+        game.screen.fill((169, 224, 0))
+        game.screen.blit(self.message, self.message_rect)
+        game.screen.blit(self.continue_msg, self.continue_msg_rect)
 
 class Snake(pygame.sprite.Sprite):
     def __init__(self, group, position, length, parent=None):
@@ -81,11 +83,10 @@ class Snake(pygame.sprite.Sprite):
             return False
 
     def is_collision_w_frame(self):
-        if (self.rect.colliderect(setup.game_frame.top_frame_rect) or
-                self.rect.colliderect(setup.game_frame.bottom_frame_rect) or
-                self.rect.colliderect(setup.game_frame.left_frame_rect) or
-                self.rect.colliderect(setup.game_frame.right_frame_rect)):
-            print("Frame collision")
+        if (self.rect.colliderect(game.game_frame.top_frame_rect) or
+                self.rect.colliderect(game.game_frame.bottom_frame_rect) or
+                self.rect.colliderect(game.game_frame.left_frame_rect) or
+                self.rect.colliderect(game.game_frame.right_frame_rect)):
             return True
         else:
             return False
@@ -107,6 +108,11 @@ class Feed(pygame.sprite.Sprite):  # 28x24
     def __init__(self):
         super().__init__()
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
+        self.rect = self.image.get_rect(
+            center=(randint(40 + self.image.get_width() // 2, 760 - self.image.get_width() // 2),
+                    randint(75 + self.image.get_height() // 2, 620 - self.image.get_height() // 2)))
+
+    def add_feed(self):
         self.rect = self.image.get_rect(
             center=(randint(40 + self.image.get_width() // 2, 760 - self.image.get_width() // 2),
                     randint(75 + self.image.get_height() // 2, 620 - self.image.get_height() // 2)))
@@ -152,64 +158,94 @@ class Frame:
         self._draw_vertical_dashed_line(754, 620, 75)
 
 
-score = 0
-
-
-class GameConfig:
+class Game:
 
     def __init__(self):
         pygame.init()
+        self._set_window_caption()
+        # screen setup
         self.screen = pygame.display.set_mode((800, 672))
         self.background_surf = pygame.image.load('assets/background.png').convert()
         self.game_frame = Frame(self.background_surf)
+        # game font setup
         self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
+        # score board setup
+        self.score = 0
         self.score_board = None
         self.score_rect = None
-        self._set_window_caption()
-        self.render_score_board(f'0{score}' if score < 10 else f'{score}')
+        self._render_score_board(f'0{self.score}' if self.score < 10 else f'{self.score}')  # refactor
+        # snake and food setup
+        self.snake = None
+        self.feed = None
+        self.snake_sprites = None
+        self.food_sprites = None
+        self._add_sprites()
+        # game clock setup
         self.clock = pygame.time.Clock()
+        # snake timer setup
+        self.snake_move_timer = pygame.USEREVENT + 1
+        self._setup_snake_timer()
+        # game state setup
         self.game_active = True
+        # game over screen setuo
+        self.game_over_screen = GameOverScreen()
 
     @staticmethod
     def _set_window_caption():
         pygame.display.set_caption("Retro Snake")
 
-    def render_score_board(self, score):
-        self.score_board = self.game_font.render(score, False, 'black')
+    def _setup_snake_timer(self):
+        pygame.time.set_timer(self.snake_move_timer, 300)
+
+    def _render_score_board(self, game_score):
+        self.score_board = self.game_font.render(game_score, False, 'black')
         self.score_rect = self.score_board.get_rect(center=(70, 50))
 
+    def _add_sprites(self):
+        # snake sprites
+        self.snake_sprites = pygame.sprite.Group()
+        self.snake = Snake(self.snake_sprites, (10, 10), 1)
+        self.snake_sprites.add(self.snake)
+        # feed sprites
+        self.food_sprites = pygame.sprite.GroupSingle()
+        self.feed = Feed()
+        self.food_sprites.add(self.feed)
 
-setup = GameConfig()
+    def check_game_state(self):
+        if self.snake.is_collision_w_self() or self.snake.is_collision_w_frame():
+            return False
+        else:
+            return True
 
-snake_sprites = pygame.sprite.Group()
-snake = Snake(snake_sprites, (10, 10), 4)
-snake_sprites.add(snake)
+    def run(self):
 
-feed_sprite = pygame.sprite.GroupSingle()
-feed = Feed()
-feed_sprite.add(feed)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                if self.game_active:
+                    if event.type == self.snake_move_timer:
+                        self.snake.move()
 
-MOVE = pygame.USEREVENT + 1
-pygame.time.set_timer(MOVE, 300)
+                else:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                        self.game_active = True
+
+            if self.game_active:
+                game.screen.blit(game.background_surf, (0, 0))
+                game.screen.blit(game.score_board, game.score_rect)
+                self.food_sprites.draw(game.screen)
+                self.snake_sprites.update()
+                self.snake_sprites.draw(game.screen)
+
+                self.game_active = self.check_game_state()
+            else:
+                self.game_over_screen.show()
+
+            game.clock.tick(60)
+            pygame.display.update()
 
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        if event.type == MOVE:
-            snake.move()
-
-    if setup.game_active:
-        setup.screen.blit(setup.background_surf, (0, 0))
-        setup.screen.blit(setup.score_board, setup.score_rect)
-        feed_sprite.draw(setup.screen)
-        snake_sprites.update()
-        snake_sprites.draw(setup.screen)
-        setup.game_active =
-
-
-
-    setup.clock.tick(60)
-    pygame.display.update()
+game = Game()
+game.run()
