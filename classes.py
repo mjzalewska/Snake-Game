@@ -58,7 +58,7 @@ class Snake(pygame.sprite.Sprite):
             self.direction = parent_direction
 
     def grow(self):
-        if self.is_collision_w_self():
+        if self.is_collision_w_feed():
             self.length += 1
 
     def is_collision_w_self(self):
@@ -166,7 +166,7 @@ class GameConfig:
         self.score_board = None
         self.score_rect = None
         self._set_window_caption()
-        self.render_score_board(f'0{score}' if score < 10 else f'{score}')  ## to be refactored
+        self.render_score_board(f'0{score}' if score < 10 else f'{score}')
         self.clock = pygame.time.Clock()
         self.game_active = True
 
@@ -207,8 +207,8 @@ while True:
         feed_sprite.draw(setup.screen)
         snake_sprites.update()
         snake_sprites.draw(setup.screen)
-        # print(is_collision_w_frame())
-        # print(is_collision_w_feed())
+        setup.game_active =
+
 
 
     setup.clock.tick(60)
