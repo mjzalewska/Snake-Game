@@ -71,16 +71,16 @@ class Snake(pygame.sprite.Sprite):
 
         tail.child = new_segment
 
-    # def is_collision_w_self(self):
-    #     head = self
-    #     current_segment = self.child
-    #
-    #     while current_segment is not None:
-    #         if head.rect.colliderect(current_segment.rect):
-    #             return True
-    #         current_segment = current_segment.child
-    #     else:
-    #         return False
+    def is_collision_w_self(self):
+        head = self
+        current_segment = self.child
+
+        while current_segment is not None:
+            if head.rect.colliderect(current_segment.rect):
+                return True
+            current_segment = current_segment.child
+        else:
+            return False
 
     def is_collision_w_food(self, food_obj):
         if food_obj.rect.colliderect(self.rect):
@@ -216,11 +216,14 @@ class Game:
 
     def update_score(self):
         self.score += 1
+        self.score_board = self.game_font.render(f"0{self.score}" if self.score < 10 else f"{self.score}",
+                                                 False, 'black')
+
 
     def _add_sprites(self):
         # snake sprites
         self.snake_sprites = pygame.sprite.Group()
-        self.snake = Snake(self.snake_sprites, (10, 10), 2)
+        self.snake = Snake(self.snake_sprites, (10, 10), 1)
         # self.snake_sprites.add(self.snake)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
@@ -230,6 +233,8 @@ class Game:
     def check_game_state(self):
         if self.snake.is_collision_w_frame():
             return False
+        # if self.snake.is_collision_w_self():
+        #     return False
         else:
             return True
 
@@ -257,12 +262,6 @@ class Game:
                 self.food_sprites.draw(self.screen)
                 self.snake_sprites.update()
                 self.snake_sprites.draw(self.screen)
-                # if self.snake.is_collision_w_food(self.food):
-                #     self.food.kill()
-                #     self.snake.grow()
-                #     self.food.add_food(self.food_sprites)
-                #     # increase speed by 1 - add speed parameter
-                #     # update score
                 self.game_active = self.check_game_state()
             else:
                 pass
@@ -275,7 +274,8 @@ class Game:
 game = Game()
 game.run()
 
-# make the snake grow
+# grow() - change the additional movement of the added segment
+# update score
 # correct coordinates so no collision of food w frame
 # food spawning logic - extend to avoid collision w snake body
 # add bite sound
