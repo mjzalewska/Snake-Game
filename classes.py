@@ -1,3 +1,5 @@
+from time import sleep
+
 import pygame
 from random import randint
 
@@ -65,33 +67,18 @@ class Snake(pygame.sprite.Sprite):
         while tail.child:
             tail = tail.child
 
-        if tail.direction == 'UP':
-            new_position = (tail.position[0], tail.position[1] - 1)
-        elif tail.direction == 'DOWN':
-            new_position = (tail.position[0], tail.position[1] + 1)
-        elif tail.direction == 'LEFT':
-            new_position = (tail.position[0] - 1, tail.position[1])
-        elif tail.direction == 'RIGHT':
-            new_position = (tail.position[0] + 1, tail.position[1])
+        new_segment = Snake(self.groups(), (tail.position[0], tail.position[1]+1), 1, tail)
 
-        new_segment = Snake(self.groups()[0], new_position, 1, tail)
         tail.child = new_segment
 
-    def is_collision_w_self(self):
-        head = self
-        current_segment = self.child
-
-        while current_segment is not None:
-            if head.rect.colliderect(current_segment.rect):
-                return True
-            current_segment = current_segment.child
-        else:
-            return False
-
-    # @staticmethod
-    # def is_collision_w_feed(food_obj, snake_spr_gr):
-    #     if pygame.sprite.spritecollide(food_obj, snake_spr_gr, False):
-    #         return True
+    # def is_collision_w_self(self):
+    #     head = self
+    #     current_segment = self.child
+    #
+    #     while current_segment is not None:
+    #         if head.rect.colliderect(current_segment.rect):
+    #             return True
+    #         current_segment = current_segment.child
     #     else:
     #         return False
 
@@ -138,9 +125,9 @@ class Food(pygame.sprite.Sprite):
         y_pos = randint(75 + self.image.get_height() // 2, 620 - self.image.get_height() // 2)
         return x_pos, y_pos
 
-    def add_food(self, snake_game):
+    def add_food(self, food_sprite_gr):
         self.rect = self.image.get_rect(center=self.generate_coordinates())
-        snake_game.food_sprites.add(self)
+        food_sprite_gr.add(self)
 
 
 class Frame:
@@ -221,7 +208,7 @@ class Game:
         pygame.display.set_caption("Retro Snake")
 
     def _setup_snake_timer(self):
-        pygame.time.set_timer(self.snake_movement, 500)
+        pygame.time.set_timer(self.snake_movement, 400)
 
     # def _render_score_board(self, game_score):
     #     self.score_board = self.game_font.render(game_score, False, 'black')
@@ -230,12 +217,11 @@ class Game:
     def update_score(self):
         self.score += 1
 
-
     def _add_sprites(self):
         # snake sprites
         self.snake_sprites = pygame.sprite.Group()
         self.snake = Snake(self.snake_sprites, (10, 10), 2)
-        self.snake_sprites.add(self.snake)
+        # self.snake_sprites.add(self.snake)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
         self.food = Food((8, 8))
@@ -260,16 +246,23 @@ class Game:
 
             if self.snake.is_collision_w_food(self.food):
                 self.food.kill()
-                self.food.add_food(game)
+                self.snake.grow()
+                self.update_score()
+                self.food.add_food(self.food_sprites)
                 # increase speed by 1 - add speed parameter
 
-
             if self.game_active:
-                game.screen.blit(game.background_surf, (0, 0))
-                game.screen.blit(game.score_board, game.score_rect)
-                self.food_sprites.draw(game.screen)
+                self.screen.blit(self.background_surf, (0, 0))
+                self.screen.blit(self.score_board, self.score_rect)
+                self.food_sprites.draw(self.screen)
                 self.snake_sprites.update()
-                self.snake_sprites.draw(game.screen)
+                self.snake_sprites.draw(self.screen)
+                # if self.snake.is_collision_w_food(self.food):
+                #     self.food.kill()
+                #     self.snake.grow()
+                #     self.food.add_food(self.food_sprites)
+                #     # increase speed by 1 - add speed parameter
+                #     # update score
                 self.game_active = self.check_game_state()
             else:
                 pass
@@ -285,3 +278,4 @@ game.run()
 # make the snake grow
 # correct coordinates so no collision of food w frame
 # food spawning logic - extend to avoid collision w snake body
+# add bite sound
