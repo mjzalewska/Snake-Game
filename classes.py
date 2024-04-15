@@ -39,8 +39,11 @@ class Snake(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/element.png').convert_alpha()
         self.position = position
         self.rect = self.image.get_rect(x=self.position[0] * GRIDSIZE, y=self.position[1] * GRIDSIZE)
+        self.rect.height = 20
+        self.rect.width = 20
         if length > 1:
-            self.child = Snake(group, (position[0], position[1] + 1), self.length - 1, self)
+            self.child = Snake(group, (position[0], position[1]), self.length - 1, self)
+            # self.child = Snake(group, (position[0], position[1] + 1), self.length - 1, self)
 
     def move(self):
         parent_direction = self.parent.direction if self.parent else None
@@ -72,15 +75,13 @@ class Snake(pygame.sprite.Sprite):
         tail.child = new_segment
 
     def is_collision_w_self(self):
-        head = self
-        current_segment = self.child
-
-        while current_segment is not None:
-            if head.rect.colliderect(current_segment.rect):
+        segment = self.child
+        while segment:
+            if self.position == segment.position:
                 return True
-            current_segment = current_segment.child
-        else:
-            return False
+            segment = segment.child
+            print(id(segment))
+        return False
 
     def is_collision_w_food(self, food_obj):
         if food_obj.rect.colliderect(self.rect):
@@ -233,8 +234,8 @@ class Game:
     def check_game_state(self):
         if self.snake.is_collision_w_frame():
             return False
-        # if self.snake.is_collision_w_self():
-        #     return False
+        if self.snake.is_collision_w_self():
+            return False
         else:
             return True
 
@@ -278,4 +279,5 @@ game.run()
 # update score
 # correct coordinates so no collision of food w frame
 # food spawning logic - extend to avoid collision w snake body
+# food spawning - fix to GRID
 # add bite sound
