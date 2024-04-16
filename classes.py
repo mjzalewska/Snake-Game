@@ -111,23 +111,25 @@ class Snake(pygame.sprite.Sprite):
 
 
 class Food(pygame.sprite.Sprite):
-    def __init__(self, position):
+    def __init__(self):
         super().__init__()
-        self.position = position
         self.image = pygame.image.load('assets/feed.png').convert_alpha()
+        self.position = self._generate_coordinates()
         self.rect = self.image.get_rect(x=self.position[0] * GRIDSIZE, y=self.position[1] * GRIDSIZE)
 
-    def generate_coordinates(self):
+    def _generate_coordinates(self):
         # generate new food coordinates adjusted by the image width and height to avoid collision with frame
-        # left frame xpos + half the image width, right frame xpos - half the image width
-        x_pos = randint(40 + self.image.get_width() // 2, 760 - self.image.get_width() // 2)
-        # top frame ypos + half the image height, bottom frame ypos - half the image height
-        y_pos = randint(75 + self.image.get_height() // 2, 620 - self.image.get_height() // 2)
+        x_pos = randint((40 + self.image.get_width())//GRIDSIZE, (760 - self.image.get_width())//GRIDSIZE)
+        y_pos = randint((75 + self.image.get_height())//GRIDSIZE, (620 - self.image.get_height())//GRIDSIZE)
         return x_pos, y_pos
 
-    def add_food(self, food_sprite_gr):
-        self.rect = self.image.get_rect(center=self.generate_coordinates())
+    def add_food(self, food_sprite_gr, snake_sprite_gr): # test
+        food_coordinates = self._generate_coordinates()
+        self.rect = self.image.get_rect(x=food_coordinates[0] * GRIDSIZE, y=food_coordinates[1]*GRIDSIZE)
         food_sprite_gr.add(self)
+        food_sprite = [sprite for sprite in food_sprite_gr][0]
+        if pygame.sprite.spritecollideany(food_sprite, snake_sprite_gr):
+            self.add_food(food_sprite_gr, snake_sprite_gr)
 
 
 class Frame:
@@ -224,7 +226,7 @@ class Game:
         # self.snake_sprites.add(self.snake)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
-        self.food = Food((8, 8))
+        self.food = Food()
         self.food_sprites.add(self.food)
 
     def check_game_state(self):
@@ -250,7 +252,7 @@ class Game:
                 self.food.kill()
                 self.snake.grow()
                 self.update_score()
-                self.food.add_food(self.food_sprites)
+                self.food.add_food(self.food_sprites, self.snake_sprites)
                 self.increase_game_speed(10)
 
             if self.game_active:
@@ -272,9 +274,6 @@ game = Game()
 game.run()
 
 # grow() - change the additional movement of the added segment
-# correct coordinates so no collision of food w frame
 # food spawning logic - extend to avoid collision w snake body
-# food spawning - fix to GRID
 # add bite sound
 # add game over and intro
-# prevent the snake from going backwards
