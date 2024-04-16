@@ -118,9 +118,10 @@ class Food(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(x=self.position[0] * GRIDSIZE, y=self.position[1] * GRIDSIZE)
 
     def _generate_coordinates(self):
-        # generate new food coordinates adjusted by the image width and height to avoid collision with frame
-        x_pos = randint((40 + self.image.get_width())//GRIDSIZE, (760 - self.image.get_width())//GRIDSIZE)
-        y_pos = randint((75 + self.image.get_height())//GRIDSIZE, (620 - self.image.get_height())//GRIDSIZE)
+        # generate new food coordinates adjusted by the food image width and height and frame thickness (6) to avoid
+        # collision with frame
+        x_pos = randint((40 + 6 + self.image.get_width())//GRIDSIZE, (760 - 6 - self.image.get_width())//GRIDSIZE)
+        y_pos = randint((75 + 6 + self.image.get_height())//GRIDSIZE, (620 - 6 - self.image.get_height())//GRIDSIZE)
         return x_pos, y_pos
 
     def add_food(self, food_sprite_gr, snake_sprite_gr): # test
@@ -223,7 +224,6 @@ class Game:
         # snake sprites
         self.snake_sprites = pygame.sprite.Group()
         self.snake = Snake(self.snake_sprites, (10, 10), 1)
-        # self.snake_sprites.add(self.snake)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
         self.food = Food()
@@ -274,6 +274,6 @@ game = Game()
 game.run()
 
 # grow() - change the additional movement of the added segment
-# food spawning logic - extend to avoid collision w snake body
 # add bite sound
-# add game over and intro
+# add game over and intro screens
+# fill readme
