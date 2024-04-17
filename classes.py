@@ -6,13 +6,19 @@ from random import randint
 GRIDSIZE = 21
 
 
-class IntroScreen:
+class StartScreen:
     def __init__(self):
-        self.background = game.background_surf
-        self.game_title = game.game_font.render('RETRO SNAKE', False, (55, 125, 34))
+        self.title_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
+        self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 40)
+        self.game_title = self.title_font.render('SNAKE', False, (55, 125, 34))
         self.game_title_rect = self.game_title.get_rect(center=(400, 336))
-        self.message = game.game_font.render('Press space to start', False, (55, 125, 34))
+        self.message = self.message_font.render('Press space to start', False, (55, 125, 34))
         self.message_rect = self.message.get_rect(center=(400, 400))
+
+    def show(self):
+        game.screen.fill((169, 224, 0))
+        game.screen.blit(self.game_title, self.game_title_rect)
+        game.screen.blit(self.message, self.message_rect)
 
 
 class GameOverScreen:
@@ -20,13 +26,10 @@ class GameOverScreen:
         self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
         self.message = self.game_font.render('Game over', False, (55, 125, 34))
         self.message_rect = self.message.get_rect(center=(400, 236))
-        self.continue_msg = self.game_font.render('Press space to start', False, (55, 125, 34))
-        self.continue_msg_rect = self.continue_msg.get_rect(center=(400, 320))
 
     def show(self):
         game.screen.fill((169, 224, 0))
         game.screen.blit(self.message, self.message_rect)
-        game.screen.blit(self.continue_msg, self.continue_msg_rect)
 
 
 class Snake(pygame.sprite.Sprite):
@@ -120,13 +123,13 @@ class Food(pygame.sprite.Sprite):
     def _generate_coordinates(self):
         # generate new food coordinates adjusted by the food image width and height and frame thickness (6) to avoid
         # collision with frame
-        x_pos = randint((40 + 6 + self.image.get_width())//GRIDSIZE, (760 - 6 - self.image.get_width())//GRIDSIZE)
-        y_pos = randint((75 + 6 + self.image.get_height())//GRIDSIZE, (620 - 6 - self.image.get_height())//GRIDSIZE)
+        x_pos = randint((40 + 6 + self.image.get_width()) // GRIDSIZE, (760 - 6 - self.image.get_width()) // GRIDSIZE)
+        y_pos = randint((75 + 6 + self.image.get_height()) // GRIDSIZE, (620 - 6 - self.image.get_height()) // GRIDSIZE)
         return x_pos, y_pos
 
-    def add_food(self, food_sprite_gr, snake_sprite_gr): # test
+    def add_food(self, food_sprite_gr, snake_sprite_gr):  # test
         food_coordinates = self._generate_coordinates()
-        self.rect = self.image.get_rect(x=food_coordinates[0] * GRIDSIZE, y=food_coordinates[1]*GRIDSIZE)
+        self.rect = self.image.get_rect(x=food_coordinates[0] * GRIDSIZE, y=food_coordinates[1] * GRIDSIZE)
         food_sprite_gr.add(self)
         food_sprite = [sprite for sprite in food_sprite_gr][0]
         if pygame.sprite.spritecollideany(food_sprite, snake_sprite_gr):
@@ -202,8 +205,10 @@ class Game:
         self._setup_snake_timer()
         # game state setup
         self.game_active = True
+        # start screen setup
+        self.start_screen = StartScreen()
         # game over screen setup
-        # self.game_over_screen = GameOverScreen()
+        self.game_over_screen = GameOverScreen()
 
     @staticmethod
     def _set_window_caption():
@@ -237,6 +242,7 @@ class Game:
         else:
             return True
 
+
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -263,8 +269,8 @@ class Game:
                 self.snake_sprites.draw(self.screen)
                 self.game_active = self.check_game_state()
             else:
-                pass
-                # self.game_over_screen.show()
+                self.game_over_screen.show()
+
 
             game.clock.tick(60)
             pygame.display.update()
@@ -277,3 +283,4 @@ game.run()
 # add bite sound
 # add game over and intro screens
 # fill readme
+# refactor - GRIDSIZE, etc
