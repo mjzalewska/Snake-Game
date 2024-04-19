@@ -8,28 +8,41 @@ GRIDSIZE = 21
 
 class StartScreen:
     def __init__(self):
-        self.title_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
-        self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 40)
+        self.title_font = pygame.font.Font('fonts/Minimal3x5.ttf', 100)
+        self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 50)
         self.game_title = self.title_font.render('SNAKE', False, (55, 125, 34))
-        self.game_title_rect = self.game_title.get_rect(center=(400, 336))
-        self.message = self.message_font.render('Press space to start', False, (55, 125, 34))
-        self.message_rect = self.message.get_rect(center=(400, 400))
+        self.game_title_rect = self.game_title.get_rect(center=(400, 135))
+        self.start_message = self.message_font.render('Press Enter to start', False, (55, 125, 34))
+        self.start_message_rect = self.start_message.get_rect(center=(400, 450))
+        self.quit_message = self.message_font.render('Press Esc to quit', False, (55, 125, 34))
+        self.quit_message_rect = self.quit_message.get_rect(center=(400, 500))
+        self.logo = pygame.image.load('assets/snake_logo.png').convert_alpha()
+        self.logo_rect = self.logo.get_rect(center=(400, 290))
 
     def show(self):
         game.screen.fill((169, 224, 0))
         game.screen.blit(self.game_title, self.game_title_rect)
-        game.screen.blit(self.message, self.message_rect)
+        game.screen.blit(self.logo, self.logo_rect)
+        game.screen.blit(self.start_message, self.start_message_rect)
+        game.screen.blit(self.quit_message, self.quit_message_rect)
 
 
 class GameOverScreen:
     def __init__(self):
-        self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
-        self.message = self.game_font.render('Game over', False, (55, 125, 34))
-        self.message_rect = self.message.get_rect(center=(400, 236))
+        self.go_font = pygame.font.Font('fonts/Minimal3x5.ttf', 100)
+        self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 50)
+        self.go_sign = self.go_font.render('Game over', False, (55, 125, 34))
+        self.message_rect = self.go_sign.get_rect(center=(400, 300))
+        self.restart_message = self.message_font.render('Press Space to restart', False, (55, 125, 34))
+        self.restart_message_rect = self.restart_message.get_rect(center=(400, 450))
+        self.quit_message = self.message_font.render('Press Esc to quit', False, (55, 125, 34))
+        self.quit_message_rect = self.quit_message.get_rect(center=(400, 500))
 
     def show(self):
         game.screen.fill((169, 224, 0))
-        game.screen.blit(self.message, self.message_rect)
+        game.screen.blit(self.go_sign, self.message_rect)
+        game.screen.blit(self.restart_message, self.restart_message_rect)
+        game.screen.blit(self.quit_message, self.quit_message_rect)
 
 
 class Snake(pygame.sprite.Sprite):
@@ -179,7 +192,7 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        self._set_window_caption()
+        pygame.display.set_caption("Snake")
         # screen setup
         self.screen = pygame.display.set_mode((800, 672))
         self.background_surf = pygame.image.load('assets/background.png').convert()
@@ -204,15 +217,13 @@ class Game:
         self.snake_movement = pygame.USEREVENT + 1
         self._setup_snake_timer()
         # game state setup
-        self.game_active = True
+        self.game_active = False
+        self.start = True
+        self.replay = False
         # start screen setup
         self.start_screen = StartScreen()
         # game over screen setup
         self.game_over_screen = GameOverScreen()
-
-    @staticmethod
-    def _set_window_caption():
-        pygame.display.set_caption("Retro Snake")
 
     def _setup_snake_timer(self):
         pygame.time.set_timer(self.snake_movement, self.speed)
@@ -228,7 +239,7 @@ class Game:
     def _add_sprites(self):
         # snake sprites
         self.snake_sprites = pygame.sprite.Group()
-        self.snake = Snake(self.snake_sprites, (10, 10), 1)
+        self.snake = Snake(self.snake_sprites, (30, 15), 1)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
         self.food = Food()
@@ -242,6 +253,24 @@ class Game:
         else:
             return True
 
+    def reset_game(self):
+        # Reset score
+        self.score = 0
+        self.update_score()
+
+        # Reset game speed
+        self.speed = 350
+        self._setup_snake_timer()
+
+        # Reset snake and food
+        self.snake_sprites = None
+        self.food_sprites = None
+        self._add_sprites()
+
+        # Reset game state
+        self.game_active = False
+        self.replay = False
+        self.start = True
 
     def run(self):
         while True:
@@ -252,7 +281,13 @@ class Game:
                 if event.type == self.snake_movement:
                     self.snake.move()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.replay = True
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                     self.game_active = True
+                    self.start = False
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    exit()
 
             if self.snake.is_collision_w_food(self.food):
                 self.food.kill()
@@ -268,10 +303,15 @@ class Game:
                 self.snake_sprites.update()
                 self.snake_sprites.draw(self.screen)
                 self.game_active = self.check_game_state()
+
             else:
-                self.game_over_screen.show()
-
-
+                if self.start:
+                    self.start_screen.show()
+                else:
+                    self.game_over_screen.show()
+                    if self.replay:
+                        self.reset_game()
+                        self.run()
             game.clock.tick(60)
             pygame.display.update()
 
