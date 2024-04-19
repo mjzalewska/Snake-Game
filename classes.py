@@ -218,7 +218,8 @@ class Game:
         self._setup_snake_timer()
         # game state setup
         self.game_active = False
-        self.game_restart = False
+        self.start = True
+        self.replay = False
         # start screen setup
         self.start_screen = StartScreen()
         # game over screen setup
@@ -238,7 +239,7 @@ class Game:
     def _add_sprites(self):
         # snake sprites
         self.snake_sprites = pygame.sprite.Group()
-        self.snake = Snake(self.snake_sprites, (10, 10), 1)
+        self.snake = Snake(self.snake_sprites, (30, 15), 1)
         # food sprites
         self.food_sprites = pygame.sprite.GroupSingle()
         self.food = Food()
@@ -253,7 +254,23 @@ class Game:
             return True
 
     def reset_game(self):
-        self = Game()
+        # Reset score
+        self.score = 0
+        self.update_score()
+
+        # Reset game speed
+        self.speed = 350
+        self._setup_snake_timer()
+
+        # Reset snake and food
+        self.snake_sprites = None
+        self.food_sprites = None
+        self._add_sprites()
+
+        # Reset game state
+        self.game_active = False
+        self.replay = False
+        self.start = True
 
     def run(self):
         while True:
@@ -264,9 +281,10 @@ class Game:
                 if event.type == self.snake_movement:
                     self.snake.move()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                    self.game_restart = True
+                    self.replay = True
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
                     self.game_active = True
+                    self.start = False
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     exit()
@@ -287,13 +305,13 @@ class Game:
                 self.game_active = self.check_game_state()
 
             else:
-                if self.score:
-                    self.game_over_screen.show()
-                    if self.game_restart:
-                        self.start_screen.show()
-                else:
+                if self.start:
                     self.start_screen.show()
-
+                else:
+                    self.game_over_screen.show()
+                    if self.replay:
+                        self.reset_game()
+                        self.run()
             game.clock.tick(60)
             pygame.display.update()
 
