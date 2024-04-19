@@ -210,6 +210,11 @@ class Game:
         self.snake = None
         self.food_sprites = None
         self._add_sprites()
+        # sounds setup
+        self.eating_sound = pygame.mixer.Sound('sounds/eat.mp3')
+        self.go_sound = pygame.mixer.Sound('sounds/game_over.mp3')
+        self.play_go_sound = True
+        self.key_sound = pygame.mixer.Sound('sounds/key_pressed.mp3')
         # game clock setup
         self.clock = pygame.time.Clock()
         # snake timer setup
@@ -271,6 +276,7 @@ class Game:
         self.game_active = False
         self.replay = False
         self.start = True
+        self.play_go_sound = True
 
     def run(self):
         while True:
@@ -281,15 +287,19 @@ class Game:
                 if event.type == self.snake_movement:
                     self.snake.move()
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                    self.key_sound.play()
                     self.replay = True
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    self.key_sound.play()
                     self.game_active = True
                     self.start = False
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.key_sound.play()
                     pygame.quit()
                     exit()
 
             if self.snake.is_collision_w_food(self.food):
+                self.eating_sound.play()
                 self.food.kill()
                 self.snake.grow()
                 self.update_score()
@@ -309,6 +319,9 @@ class Game:
                     self.start_screen.show()
                 else:
                     self.game_over_screen.show()
+                    if self.play_go_sound:
+                        self.go_sound.play()
+                        self.play_go_sound = False
                     if self.replay:
                         self.reset_game()
                         self.run()
@@ -320,7 +333,5 @@ game = Game()
 game.run()
 
 # grow() - change the additional movement of the added segment
-# add bite sound
-# add game over and intro screens
 # fill readme
-# refactor - GRIDSIZE, etc
+# refactor - GRIDSIZE,  redundant code, etc
