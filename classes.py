@@ -333,5 +333,4 @@ game = Game()
 game.run()
 
 # grow() - change the additional movement of the added segment
-# fill readme
-# refactor - GRIDSIZE,  redundant code, etc
+# refactor - GRIDSIZE,  redundant code, reference to the global game variable instead in the Screens etc
