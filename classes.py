@@ -1,5 +1,3 @@
-from time import sleep
-
 import pygame
 from random import randint
 
@@ -16,7 +14,7 @@ class StartScreen:
         self.start_message_rect = self.start_message.get_rect(center=(400, 450))
         self.quit_message = self.message_font.render('Press Esc to quit', False, (55, 125, 34))
         self.quit_message_rect = self.quit_message.get_rect(center=(400, 500))
-        self.logo = pygame.image.load('assets/snake_logo.png').convert_alpha()
+        self.logo = pygame.image.load('graphics/snake_logo.png').convert_alpha()
         self.logo_rect = self.logo.get_rect(center=(400, 290))
 
     def show(self):
@@ -52,7 +50,7 @@ class Snake(pygame.sprite.Sprite):
         self.parent = parent
         self.child = None
         self.direction = 'UP'
-        self.image = pygame.image.load('assets/element.png').convert_alpha()
+        self.image = pygame.image.load('graphics/element.png').convert_alpha()
         self.position = position
         self.rect = self.image.get_rect(x=self.position[0] * GRIDSIZE, y=self.position[1] * GRIDSIZE)
         self.rect.height = 20
@@ -129,7 +127,7 @@ class Snake(pygame.sprite.Sprite):
 class Food(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load('assets/feed.png').convert_alpha()
+        self.image = pygame.image.load('graphics/feed.png').convert_alpha()
         self.position = self._generate_coordinates()
         self.rect = self.image.get_rect(x=self.position[0] * GRIDSIZE, y=self.position[1] * GRIDSIZE)
 
@@ -195,7 +193,7 @@ class Game:
         pygame.display.set_caption("Snake")
         # screen setup
         self.screen = pygame.display.set_mode((800, 672))
-        self.background_surf = pygame.image.load('assets/background.png').convert()
+        self.background_surf = pygame.image.load('graphics/background.png').convert()
         self.game_frame = Frame(self.background_surf)
         # game font setup
         self.game_font = pygame.font.Font('fonts/Minimal3x5.ttf', 60)
