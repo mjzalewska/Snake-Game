@@ -4,43 +4,48 @@ from random import randint
 GRIDSIZE = 21
 
 
-class StartScreen:
+class Screen:
     def __init__(self):
-        self.title_font = pygame.font.Font('fonts/Minimal3x5.ttf', 100)
+        self.main_font = pygame.font.Font('fonts/Minimal3x5.ttf', 100)
         self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 50)
-        self.game_title = self.title_font.render('SNAKE', False, (55, 125, 34))
-        self.game_title_rect = self.game_title.get_rect(center=(400, 135))
-        self.start_message = self.message_font.render('Press Enter to start', False, (55, 125, 34))
-        self.start_message_rect = self.start_message.get_rect(center=(400, 450))
+        self.message = self.message_font.render('Press <Key> to start', False, (55, 125, 34))
+        self.message_rect = self.message.get_rect(center=(400, 450))
         self.quit_message = self.message_font.render('Press Esc to quit', False, (55, 125, 34))
         self.quit_message_rect = self.quit_message.get_rect(center=(400, 500))
+
+    def show(self, game_inst):
+        pass
+
+
+class StartScreen(Screen):
+    def __init__(self):
+        super().__init__()
+        self.title = self.main_font.render('SNAKE', False, (55, 125, 34))
+        self.title_rect = self.title.get_rect(center=(400, 135))
+        self.message = self.message_font.render('Press Enter to start', False, (55, 125, 34))
         self.logo = pygame.image.load('graphics/snake_logo.png').convert_alpha()
         self.logo_rect = self.logo.get_rect(center=(400, 290))
 
-    def show(self):
-        game.screen.fill((169, 224, 0))
-        game.screen.blit(self.game_title, self.game_title_rect)
-        game.screen.blit(self.logo, self.logo_rect)
-        game.screen.blit(self.start_message, self.start_message_rect)
-        game.screen.blit(self.quit_message, self.quit_message_rect)
+    def show(self, game_inst):
+        game_inst.screen.fill((169, 224, 0))
+        game_inst.screen.blit(self.title, self.title_rect)
+        game_inst.screen.blit(self.logo, self.logo_rect)
+        game_inst.screen.blit(self.message, self.message_rect)
+        game_inst.screen.blit(self.quit_message, self.quit_message_rect)
 
 
-class GameOverScreen:
+class GameOverScreen(Screen):
     def __init__(self):
-        self.go_font = pygame.font.Font('fonts/Minimal3x5.ttf', 100)
-        self.message_font = pygame.font.Font('fonts/Minimal3x5.ttf', 50)
-        self.go_sign = self.go_font.render('Game over', False, (55, 125, 34))
-        self.message_rect = self.go_sign.get_rect(center=(400, 300))
-        self.restart_message = self.message_font.render('Press Space to restart', False, (55, 125, 34))
-        self.restart_message_rect = self.restart_message.get_rect(center=(400, 450))
-        self.quit_message = self.message_font.render('Press Esc to quit', False, (55, 125, 34))
-        self.quit_message_rect = self.quit_message.get_rect(center=(400, 500))
+        super().__init__()
+        self.go_sign = self.main_font.render('Game over', False, (55, 125, 34))
+        self.go_rect = self.go_sign.get_rect(center=(400, 300))
+        self.message = self.message_font.render('Press Space to restart', False, (55, 125, 34))
 
-    def show(self):
-        game.screen.fill((169, 224, 0))
-        game.screen.blit(self.go_sign, self.message_rect)
-        game.screen.blit(self.restart_message, self.restart_message_rect)
-        game.screen.blit(self.quit_message, self.quit_message_rect)
+    def show(self, game_inst):
+        game_inst.screen.fill((169, 224, 0))
+        game_inst.screen.blit(self.go_sign, self.go_rect)
+        game_inst.screen.blit(self.message, self.message_rect)
+        game_inst.screen.blit(self.quit_message, self.quit_message_rect)
 
 
 class Snake(pygame.sprite.Sprite):
@@ -314,9 +319,9 @@ class Game:
 
             else:
                 if self.start:
-                    self.start_screen.show()
+                    self.start_screen.show(game)
                 else:
-                    self.game_over_screen.show()
+                    self.game_over_screen.show(game)
                     if self.play_go_sound:
                         self.go_sound.play()
                         self.play_go_sound = False
@@ -331,4 +336,4 @@ game = Game()
 game.run()
 
 # grow() - change the additional movement of the added segment
-# refactor - GRIDSIZE,  redundant code, reference to the global game variable instead in the Screens etc
+
