@@ -20,7 +20,7 @@ class Screen:
 class StartScreen(Screen):
     def __init__(self):
         super().__init__()
-        self.title = self.main_font.render('SNAKE', False, (55, 125, 34))
+        self.title = self.main_font.render('RUMBA ASS SNAKE', False, (55, 125, 34))
         self.title_rect = self.title.get_rect(center=(400, 135))
         self.message = self.message_font.render('Press Enter to start', False, (55, 125, 34))
         self.logo = pygame.image.load('graphics/snake_logo.png').convert_alpha()
@@ -192,7 +192,7 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Snake")
+        pygame.display.set_caption("Rumba Ass Snake")
         # screen setup
         self.screen = pygame.display.set_mode((800, 672))
         self.background_surf = pygame.image.load('graphics/background.png').convert()
@@ -236,8 +236,8 @@ class Game:
     def increase_game_speed(self, increment):
         self.speed += increment
 
-    def update_score(self):
-        self.score += 1
+    def update_score(self, increment: int):
+        self.score += increment
         self.score_board = self.game_font.render(f"0{self.score}" if self.score < 10 else f"{self.score}",
                                                  False, 'black')
 
@@ -261,7 +261,7 @@ class Game:
     def reset_game(self):
         # Reset score
         self.score = 0
-        self.update_score()
+        self.update_score(0)
 
         # Reset game speed
         self.speed = 350
@@ -289,11 +289,14 @@ class Game:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                     self.key_sound.play()
                     self.replay = True
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
-                    self.key_sound.play()
-                    self.game_active = True
-                    self.start = False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN:
+                    if self.start:
+                        self.key_sound.play()
+                        self.game_active = True
+                        self.start = False
+                    else:
+                        pass
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.key_sound.play()
                     pygame.quit()
                     exit()
@@ -302,7 +305,7 @@ class Game:
                 self.eating_sound.play()
                 self.food.kill()
                 self.snake.grow()
-                self.update_score()
+                self.update_score(1)
                 self.food.add_food(self.food_sprites, self.snake_sprites)
                 self.increase_game_speed(10)
 
