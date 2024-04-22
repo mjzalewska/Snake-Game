@@ -1,13 +1,13 @@
 # Snake Game
 
 #### Description
-Yet another version of the classic game written in Python ;-)
+Yet another version of the classic game written in Python but with a funny twist (literally) ;-)
 
 
 
 #### Game demo: <YT link>
 
-
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/4LpRnk2uDtM/0.jpg)](https://www.youtube.com/watch?v=4LpRnk2uDtM)
 
 #### Requirements: 
 All requirements are included in the _requirements.txt_ file
